@@ -12,6 +12,10 @@ import { join } from "node:path";
 // characters, not only white space. Keep the fortune far inside it.
 const MAX_CHARS = 200;
 
+// Where the fortune goes, relative to the working directory (see main).
+const OUT_DIR = "output";
+const OUT_FILE = "entry.txt";
+
 // The fortune, built from three verified parts so each beat can be
 // read on its own: the classic opening, the crack, and the turn.
 // The angle: nobody else in the field writes about the cookie itself.
@@ -39,6 +43,12 @@ function gate(text: string): void {
   if (!isSingleLine(text)) {
     throw new Error("fortune must be a single line");
   }
+  // Keep the fortune plain ASCII: then its byte count equals its
+  // character count, which is the smallest size it can take — and
+  // size breaks exact ties on Judge win rate, smaller text first.
+  if (Buffer.byteLength(text, "utf8") !== text.length) {
+    throw new Error("fortune must be plain ASCII so bytes equal characters");
+  }
 }
 
 function main(): void {
@@ -46,9 +56,9 @@ function main(): void {
   // Cwd-relative on purpose: the grading sandbox mounts the repo
   // read-only, so the output must not sit under the script's own
   // directory. "output/entry.txt" resolves against the cwd.
-  mkdirSync("output", { recursive: true });
-  writeFileSync(join("output", "entry.txt"), FORTUNE, "utf8");
-  console.log(`wrote output/entry.txt (${FORTUNE.length} characters)`);
+  mkdirSync(OUT_DIR, { recursive: true });
+  writeFileSync(join(OUT_DIR, OUT_FILE), FORTUNE, "utf8");
+  console.log(`wrote ${OUT_DIR}/${OUT_FILE} (${FORTUNE.length} characters)`);
 }
 
 main();
